@@ -183,6 +183,16 @@ docker compose up -d
 make migrate-up
 ```
 
+Or bring up the database, the migrations, and the API in one command with the
+Compose "app" profile. Pass secrets through the environment (`.env`): the API
+refuses to start without `SOROFORGE_API_TOKEN`, and the server stays bound to
+loopback on the host. Plain `docker compose up -d` remains Postgres-only, as
+above.
+
+```bash
+docker compose --profile app up -d
+```
+
 With SQLite — no server, no Docker:
 
 ```bash
