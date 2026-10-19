@@ -415,6 +415,8 @@ Pass --network to restrict the list to one network.`,
 }
 
 func newHistoryCmd() *cobra.Command {
+	var failures bool
+
 	cmd := &cobra.Command{
 		Use:   "history <alias>",
 		Short: "Show, export, or import a contract's deploy and upgrade history",
@@ -422,6 +424,11 @@ func newHistoryCmd() *cobra.Command {
 
 Each entry records the WASM hash, who deployed it, the transaction, and the
 ledger it landed in.
+
+With --failures, show the contract's failed deploy and upgrade attempts
+instead — transactions that were included and then failed, submissions the
+network rejected, and pre-flight stops. Failures are recorded in their own
+table and never appear in the normal history.
 
 The subcommands move the whole history between databases:
 
@@ -441,6 +448,14 @@ The subcommands move the whole history between databases:
 				return err
 			}
 
+			if failures {
+				attempts, err := a.service.Failures(cmd.Context(), network, alias)
+				if err != nil {
+					return err
+				}
+				return printFailures(alias, network, attempts)
+			}
+
 			deployments, err := a.service.History(cmd.Context(), network, alias)
 			if err != nil {
 				return err
@@ -449,6 +464,8 @@ The subcommands move the whole history between databases:
 		},
 	}
 
+	cmd.Flags().BoolVar(&failures, "failures", false,
+		"show failed deploy and upgrade attempts instead of confirmed history")
 	attachAliasCompletion(cmd)
 	cmd.AddCommand(newHistoryExportCmd(), newHistoryImportCmd())
 	return cmd

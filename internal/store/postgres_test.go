@@ -62,7 +62,7 @@ func truncate(t *testing.T, url string) {
 	require.NoError(t, err)
 	defer pool.Close()
 
-	_, err = pool.Exec(ctx, "TRUNCATE contracts, deployments RESTART IDENTITY")
+	_, err = pool.Exec(ctx, "TRUNCATE contracts, deployments, deployment_attempts RESTART IDENTITY")
 	require.NoError(t, err)
 }
 
