@@ -537,7 +537,7 @@ of an error printed mid-prompt.
 | `upgrade <alias>` | Upload new WASM and invoke the contract's upgrade entrypoint. |
 | `upload <alias>` | Install WASM on-chain without deploying or upgrading; prints the hash for a governance proposal. |
 | `list` | List tracked contracts; `--network` filters. |
-| `history <alias>` | Show a contract's full deploy/upgrade timeline, newest first. |
+| `history <alias>` | Show a contract's full deploy/upgrade timeline, newest first; `--failures` shows failed attempts instead. |
 | `history export` | Write every tracked contract and deployment as versioned JSON (`--out FILE`, else stdout). |
 | `history import <file>` | Load an export into an empty database; `--merge` imports into a populated one. |
 | `status <alias>` | Compare the on-chain WASM hash against the recorded one. |
@@ -621,6 +621,21 @@ verdict (`match`, `MISMATCH`, or `not verified`). The RPC URL is printed with
 any userinfo and query-string credentials removed — provider keys commonly live
 in the URL — so the output, including `--json`, is safe to paste into a ticket
 or CI log.
+
+**`history <alias> --failures`** shows a contract's failed deploy and upgrade
+attempts instead of its confirmed timeline: transactions that were included and
+then failed, submissions the network rejected, and runs a pre-flight check
+stopped. Failures live in their own `deployment_attempts` table and never
+appear in `history`, `status`, or drift detection — the deployments table keeps
+holding only confirmed, on-chain changes. Each row names the stage that failed
+(`simulate`, `submit`, `confirm`) and keeps the transaction hash when one was
+sent. Stored error text may quote RPC responses but is redacted of any
+secret-seed-shaped material before it is written, so `--failures` output —
+including `--json` — is safe to paste into a ticket.
+
+```bash
+soroforge history counter --failures
+```
 
 **`history export` / `history import`** move the entire recorded history
 between databases as a versioned JSON document (`version: 1`; the format is
